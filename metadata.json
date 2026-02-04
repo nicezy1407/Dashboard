@@ -1,0 +1,5 @@
+{
+  "name": "EcoPrint Analytics",
+  "description": "A modern, eco-friendly dashboard to analyze paper usage statistics from Google Sheets data.",
+  "requestFramePermissions": []
+}
