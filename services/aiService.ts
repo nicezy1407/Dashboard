@@ -1,16 +1,31 @@
 import { GoogleGenAI } from "@google/genai";
 import { DashboardStats, ChartDataPoint } from '../types';
 
-// Initialize Gemini API
-// Note: API Key must be provided via environment variable process.env.API_KEY
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export const generateEcoInsights = async (
   stats: DashboardStats,
   deptData: ChartDataPoint[],
   currentFilter: { dept: string; year: string }
 ): Promise<string> => {
   try {
+    // Initialize Gemini API Client inside the function
+    // This prevents "ReferenceError: process is not defined" during initial app load
+    // if the environment is strictly client-side (like standard Vite on Vercel).
+    
+    let apiKey = '';
+    try {
+        // Attempt to access process.env.API_KEY safely.
+        // Wrapping in try-catch prevents the app from crashing if 'process' is not defined in the browser.
+        apiKey = process.env.API_KEY;
+    } catch (e) {
+        console.warn("Could not access process.env.API_KEY directly.");
+    }
+
+    if (!apiKey) {
+        // Return a helpful message instead of crashing
+        return "System Error: API Key missing. Please set 'API_KEY' in your Vercel Environment Variables.";
+    }
+
+    const ai = new GoogleGenAI({ apiKey: apiKey });
     const model = 'gemini-3-flash-preview';
     
     // Construct a context-aware prompt
@@ -53,6 +68,6 @@ export const generateEcoInsights = async (
     return response.text || "ไม่สามารถวิเคราะห์ข้อมูลได้ในขณะนี้";
   } catch (error) {
     console.error("AI Analysis Error:", error);
-    return "เกิดข้อผิดพลาดในการเชื่อมต่อกับ AI กรุณาลองใหม่อีกครั้ง";
+    return "เกิดข้อผิดพลาดในการเชื่อมต่อกับ AI หรือ API Key ไม่ถูกต้อง";
   }
 };
